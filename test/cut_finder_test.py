@@ -33,6 +33,20 @@ class MainTests(unittest.TestCase):
         self.assertEqual(cf.stocks.used_boards, list())
         # nothing is possible here
 
+    def test_single_kerf(self):
+        cf = CutFinder(finals=[99.5], stocks=[100], kerf=1)
+        self.assertEqual(cf.finals.unused_boards, list())
+        self.assertEqual(cf.finals.used_boards, [99.5])
+        self.assertEqual(cf.stocks.unused_boards, list())
+        self.assertEqual(cf.stocks.used_boards, [100])
+        # you can cut less than a single kerf off 1
+
+    def test_kerf(self):
+        cf = CutFinder(finals=[49.5, 49.5], stocks=[100], kerf=1)
+        self.assertEqual(cf.finals.unused_boards, list())
+        self.assertEqual(cf.finals.used_boards, [49.5, 49.5])
+        self.assertEqual(cf.stocks.unused_boards, list())
+        self.assertEqual(cf.stocks.used_boards, [100])
 
 
 if __name__ == '__main__':
