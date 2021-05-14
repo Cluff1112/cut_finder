@@ -10,7 +10,7 @@ from itertools import combinations
 from functools import partial
 from typing import Tuple, List
 
-from boards import FinalBoard, FinalBoardSet, StockBoard, StockBoardSet
+from boards.board_sets import FinalBoard, FinalBoardSet, StockBoard, StockBoardSet
 
 KERF = 0.125
 
@@ -45,7 +45,8 @@ class CutFinder:
     def _find_lowest_waste(self, stock: StockBoard, combos: List):
         best = (stock.length, tuple(), stock)
         for possible_group in combos:
-            length_of_group = sum(possible_group) + len(possible_group) * self.kerf
+            length_of_group = sum(possible_group) + (len(possible_group)-1) * self.kerf
+
             if (
                 stock.length >= length_of_group
                 and stock.length - length_of_group < best[0]
