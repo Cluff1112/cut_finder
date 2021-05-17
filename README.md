@@ -3,7 +3,7 @@
 Meant to answer problems of the form "How should I cut boards a, b, and c into final boards x,
 y,z to minimize waste"
 
-cutfinder is available from pypi:
+cutfinder is available from [pypi](https://pypi.org/project/cutfinder/):
     
     pip install cutfinder
 
