@@ -1,6 +1,6 @@
 import unittest
 
-from cut_finder import CutFinder
+from cutfinder.cutfinder import CutFinder
 
 
 class MainTests(unittest.TestCase):

@@ -5,12 +5,19 @@ a function to provide lumber cutting schemes optimized for maximal size of remai
 """
 __author__ = "ccluff"
 
-import collections
+from cutfinder.utils.board_sets import StockBoardSet, FinalBoardSet
+from cutfinder.utils.boards import StockBoard, FinalBoard
+from cutfinder.utils.utils import parse_arg
+
+try:
+    from collections.abc import Iterable  # noqa
+except ImportError:
+    from collections import Iterable
+
 from itertools import combinations
 from functools import partial
 from typing import Tuple, List
 
-from boards.board_sets import FinalBoard, FinalBoardSet, StockBoard, StockBoardSet
 
 KERF = 0.125
 
@@ -25,27 +32,29 @@ class CutFinder:
     def __init__(self, stocks: List, finals: List, kerf: float = KERF):
         self.stocks = StockBoardSet(stocks)
         self.finals = FinalBoardSet(finals)
-        self.kerf = kerf
+        self.kerf: float = kerf
 
         self.remove_oversize_finals()
 
         while self.finals.unaddressed_boards and self.stocks.unaddressed_boards:
             find_lowest_waste = partial(
-                self._find_lowest_waste,
-                combos=list(self.all_combos_of_finals)
+                self._find_lowest_waste, combos=list(self.all_combos_of_finals)
             )
             best = min(map(find_lowest_waste, self.stocks.unaddressed_boards))
             self.address(best)
+        print(self)
 
     @property
-    def all_combos_of_finals(self) -> collections.Iterable:
+    def all_combos_of_finals(self) -> Iterable:
         for i in range(1, len(self.finals.unaddressed_boards) + 1):
             yield from combinations(self.finals.unaddressed_boards, i)
 
     def _find_lowest_waste(self, stock: StockBoard, combos: List):
         best = (stock.length, tuple(), stock)
         for possible_group in combos:
-            length_of_group = sum(possible_group) + (len(possible_group)-1) * self.kerf
+            length_of_group = (
+                sum(possible_group) + (len(possible_group) - 1) * self.kerf
+            )
 
             if (
                 stock.length >= length_of_group
@@ -61,7 +70,7 @@ class CutFinder:
         finals: Tuple[FinalBoard] = tup[1]
         stock: StockBoard = tup[2]
 
-        stock.remainder = remainder
+        stock.remainder = round(max([0.0, remainder - self.kerf]), 2)
         stock.used = True
         stock.addressed = True
         stock.cut_into.extend([board.length for board in finals])
@@ -80,14 +89,28 @@ class CutFinder:
 
     def __repr__(self):
         out = ""
-        for board in sorted(self.stocks.boards.values(), key=lambda y: y.remainder, reverse=True):
+        if self.finals.unused_boards:
+            unused = ', '.join(map(str, self.finals.unused_boards))
+            out += f"Unable to allocate final cuts: {unused}\n"
+        for board in sorted(
+            self.stocks.boards.values(), key=lambda y: y.remainder, reverse=True
+        ):
             out += f"Stock Board of length {board.length} is "
             if board.cut_into:
-                out += f"cut into final boards {', '.join(map(str, board.cut_into))}"
+                s = 's' if len(board.cut_into) > 1 else ''
+                out += f"cut into final board{s} {', '.join(map(str, board.cut_into))}"
+                out += f" with remainder {board.remainder}\n"
+
             else:
                 out += f"uncut"
-            out += f" with remainder {board.remainder}\n"
 
-        if self.finals.unused_boards:
-            out += f"unallocated to allocate final cuts: {', '.join(map(str, self.finals.unused_boards))}"
+
+
         return out
+
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) > 1:
+        CutFinder(*map(parse_arg, sys.argv[1:]))
