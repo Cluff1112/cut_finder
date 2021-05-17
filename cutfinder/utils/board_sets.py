@@ -6,7 +6,7 @@ A new .py file
 
 __author__ = 'ccluff'
 
-from boards.boards import FinalBoard, StockBoard
+from cutfinder.utils.boards import StockBoard, FinalBoard
 
 
 class BoardSet:
@@ -44,6 +44,8 @@ class FinalBoardSet(BoardSet):
     """Final Boards"""
 
     def __init__(self, dimensions_set):
+        if str(dimensions_set).isnumeric():
+            dimensions_set = [dimensions_set]
         self.boards = {id_ + 1: FinalBoard(id_ + 1, dim) for id_, dim in enumerate(dimensions_set)}
 
 
@@ -51,4 +53,6 @@ class StockBoardSet(BoardSet):
     """Stock Boards"""
 
     def __init__(self, dimensions_set):
+        if str(dimensions_set).isnumeric():
+            dimensions_set = [dimensions_set]
         self.boards = {id_ + 1: StockBoard(id_ + 1, dim) for id_, dim in enumerate(dimensions_set)}
